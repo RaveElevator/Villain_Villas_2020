@@ -69,30 +69,39 @@ def scrape(browser):
             except Exception:
                 countrys.append("NA")
         
+        # Set up counter variable, empty list, and dictionary
         y = 0
         current_spans = []
         attributes_dict[name] = ['hey']
+
+        # The goal here is to get all of those island attributes
         for span in grid.find_all('span'):
+            # Gotta start at the third span that is found
             if y > 3:
                 stuff = span.text.strip()
                 all_spans.append(stuff)
                 current_spans.append(stuff)
             y = y+1
 
+        # Append the spans to the attributes_dict
         if len(current_spans) == 0:
             attributes_dict[name] = ["NA"]
         else:
             attributes_dict[name] = current_spans
             
-
+    # Here we go island by island to get the latitude and longitude
     for link in links:
+        # Visit the link
         browser.visit(link)
 
+        # Beautiful Soup magic
         html = browser.html
         soup = bs(html, "html.parser")
 
         tags = soup.find_all('div', {'class': 'hide'})
         y = 0
+
+        # loop through to get the lat and lng
         for tag in tags:
             try:
                 lat = tag['data-lat']
@@ -103,9 +112,11 @@ def scrape(browser):
                 break
             except Exception:
                 pass
-
+    
+    # Now I want to get a list of all unique attributes and then compare each island to that list to see if they have the attribute
     all_unique_attributes = list(dict.fromkeys(all_spans))
 
+    # Set up an initial dictionary
     island_attributes_dict = {
         "Island_Name": names,
         "Acreage": acres,
@@ -113,16 +124,15 @@ def scrape(browser):
         "latitude": lats,
         "longitude": lngs}
 
+    # Loop through each island and each attribute, compare them, and put in the dictionary a yes or no based on if the country has the attribute
     for item in all_unique_attributes:
         has_attribute_list = []
         y = 0
         for key in attributes_dict:
             if item in attributes_dict[key]:
                 has_attribute_list.append("yes")
-                #print(key + " has attribute " + item)
             else:
                 has_attribute_list.append("no")
-                #print(key + " does not have attribute " + item)
             y = y+1
 
         island_attributes_dict[item] = has_attribute_list
